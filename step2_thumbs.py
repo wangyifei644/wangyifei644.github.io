@@ -35,6 +35,10 @@ def process_image(filename, input_folder, output_folder, size):
 
             img = img.resize(size, Image.LANCZOS)
 
+            # 🔧 关键修正：确保是 RGB 模式（JPEG 不支持 RGBA）
+            if img.mode in ("RGBA", "LA"):
+                img = img.convert("RGB")
+
             thumb_path = os.path.join(output_folder, filename)
             if exif_data:
                 img.save(thumb_path, quality=90, optimize=True, exif=exif_data)
