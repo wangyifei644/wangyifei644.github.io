@@ -229,4 +229,9 @@ window.onload = function () {
 
     leftArrow.style.display = 'none';
     rightArrow.style.display = 'none';
+
+    // Add click event for year 2026 button
+    document.getElementById('year2026Btn').addEventListener('click', function() {
+        window.location.href = '2026.html';
+    });
 };
