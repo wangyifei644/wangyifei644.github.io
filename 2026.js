@@ -1,59 +1,50 @@
-// 定义数字的点阵图案 (7x7 网格)
+// 定义数字的点阵图案，每个笔画只用一行
 const digitPatterns = {
     '2': [
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [0, 0, 0, 0, 0, 1, 1],
-        [0, 0, 0, 0, 0, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 0, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1]
+        [1, 1, 1, 1, 1, 1, 1],  // 顶部横线
+        [0, 0, 0, 0, 0, 0, 1],  // 右上竖线
+        [0, 0, 0, 0, 0, 0, 1],  // 右上竖线
+        [0, 0, 0, 0, 0, 0, 1],  // 右上竖线
+        [1, 1, 1, 1, 1, 1, 1],  // 中间横线
+        [1, 0, 0, 0, 0, 0, 0],  // 左下竖线
+        [1, 0, 0, 0, 0, 0, 0],  // 左下竖线
+        [1, 0, 0, 0, 0, 0, 0],  // 左下竖线
+        [1, 1, 1, 1, 1, 1, 1]   // 底部横线
     ],
     '0': [
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1]
+        [1, 1, 1, 1, 1, 1, 1],  // 顶部横线
+        [1, 0, 0, 0, 0, 0, 1],  // 左竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 左竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 左竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 左竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 右竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 右竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 右竖线
+        [1, 1, 1, 1, 1, 1, 1]   // 底部横线
     ],
     '6': [
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 0, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 0, 0, 0, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1]
+        [1, 1, 1, 1, 1, 1, 1],  // 顶部横线
+        [1, 0, 0, 0, 0, 0, 0],  // 左上竖线
+        [1, 0, 0, 0, 0, 0, 0],  // 左上竖线
+        [1, 0, 0, 0, 0, 0, 0],  // 左上竖线
+        [1, 1, 1, 1, 1, 1, 1],  // 中间横线
+        [1, 0, 0, 0, 0, 0, 1],  // 左下和右下竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 左下和右下竖线
+        [1, 0, 0, 0, 0, 0, 1],  // 左下和右下竖线
+        [1, 1, 1, 1, 1, 1, 1]   // 底部横线
     ]
 };
 
 let imageIndex = 0;
-const maxImages = 105; // 根据你的图片数量调整
+const maxImages = 112; // 2026 需要的图片数量
 
-// 加载图片
+// 加载图片（从 images/2026 文件夹）
 function loadImage(index) {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.src = `images/${index}.jpg`;
+        img.src = `images/2026/${index}.jpg`;
         img.onload = () => resolve(img);
-        img.onerror = () => {
-            // 如果图片加载失败，尝试加载缩略图
-            const thumbImg = new Image();
-            thumbImg.src = `images/thumbs/${index}.jpg`;
-            thumbImg.onload = () => resolve(thumbImg);
-            thumbImg.onerror = () => resolve(null);
-        };
+        img.onerror = () => resolve(null);
     });
 }
 
@@ -99,26 +90,23 @@ function createDigitContainer(digit) {
 
 // 为单元格加载图片
 async function loadImageForCell(cell) {
-    let loaded = false;
-    let attempts = 0;
-    const maxAttempts = maxImages * 2; // 最多尝试次数
-    
-    while (!loaded && attempts < maxAttempts) {
-        const img = await loadImage(imageIndex);
-        imageIndex = (imageIndex + 1) % maxImages;
-        attempts++;
-        
-        if (img) {
-            const imgElement = document.createElement('img');
-            imgElement.src = img.src;
-            imgElement.alt = 'Photo';
-            cell.appendChild(imgElement);
-            loaded = true;
-        }
+    if (imageIndex >= maxImages) {
+        // 如果图片用完了，显示占位符
+        cell.style.backgroundColor = '#ff6f61';
+        cell.style.opacity = '0.5';
+        return;
     }
     
-    // 如果所有图片都加载失败，显示占位符
-    if (!loaded) {
+    const img = await loadImage(imageIndex);
+    imageIndex++;
+    
+    if (img) {
+        const imgElement = document.createElement('img');
+        imgElement.src = img.src;
+        imgElement.alt = 'Photo';
+        cell.appendChild(imgElement);
+    } else {
+        // 如果图片加载失败，显示占位符
         cell.style.backgroundColor = '#ff6f61';
         cell.style.opacity = '0.5';
     }
