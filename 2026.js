@@ -74,8 +74,10 @@ function createDigitContainer(digit) {
             
             if (pattern[row][col] === 1) {
                 cell.classList.add('filled');
-                // 异步加载图片
-                loadImageForCell(cell);
+                // 先分配图片索引，再异步加载图片
+                const currentIndex = imageIndex;
+                imageIndex++;
+                loadImageForCell(cell, currentIndex);
             } else {
                 cell.classList.add('empty');
             }
@@ -89,16 +91,15 @@ function createDigitContainer(digit) {
 }
 
 // 为单元格加载图片
-async function loadImageForCell(cell) {
-    if (imageIndex >= maxImages) {
+async function loadImageForCell(cell, index) {
+    if (index >= maxImages) {
         // 如果图片用完了，显示占位符
         cell.style.backgroundColor = '#ff6f61';
         cell.style.opacity = '0.5';
         return;
     }
     
-    const img = await loadImage(imageIndex);
-    imageIndex++;
+    const img = await loadImage(index);
     
     if (img) {
         const imgElement = document.createElement('img');
