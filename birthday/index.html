@@ -217,11 +217,83 @@
     from { transform: scale(0.5); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
-  .round-info {
+  .progress {
     text-align: center;
-    padding: 6px;
+    padding: 8px;
     font-size: 12px;
-    color: #bbb;
+    color: #999;
+    border-top: 1px solid #f0f0f0;
+  }
+  .progress .dots {
+    display: inline-flex;
+    gap: 6px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .progress .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    transition: background 0.3s;
+  }
+  .progress .dot.done {
+    background: #4a90d9;
+  }
+  /* 生日展示页 */
+  .birthday-page {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 400;
+    animation: fadeIn 0.6s;
+  }
+  .birthday-page.show { display: flex; }
+  .birthday-page .photo-frame {
+    position: relative;
+    padding: 12px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    margin-bottom: 24px;
+    transform: rotate(-2deg);
+  }
+  .birthday-page .photo-frame img {
+    display: block;
+    max-width: 280px;
+    max-height: 360px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  .birthday-page .photo-frame .tape {
+    position: absolute;
+    width: 60px;
+    height: 24px;
+    background: rgba(255,220,100,0.7);
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(2deg);
+    border-radius: 2px;
+  }
+  .birthday-page .birthday-text {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .birthday-page .birthday-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
   }
 </style>
 </head>
@@ -242,7 +314,14 @@
     </div>
     <button class="btn-confirm" id="btnConfirm">确定</button>
   </div>
-  <div class="round-info" id="roundInfo"></div>
+  <div class="progress" id="progress">
+    验证进度
+    <span class="dots">
+      <span class="dot" id="dot0"></span>
+      <span class="dot" id="dot1"></span>
+      <span class="dot" id="dot2"></span>
+    </span>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -252,11 +331,24 @@
     <div class="emoji">🎂</div>
     <div class="msg">别选了～<br>今天过生日的人<br>其实是你呀！</div>
     <div class="sub-msg">🎉 生日快乐 🎉</div>
-    <button class="btn-close" onclick="location.reload()">好叭 💕</button>
+    <button class="btn-close" id="btnSurpriseClose">好叭 💕</button>
   </div>
 </div>
 
+<div class="birthday-page" id="birthdayPage">
+  <div class="photo-frame">
+    <div class="tape"></div>
+    <img src="figure/birthday.png" alt="生日快乐">
+  </div>
+  <div class="birthday-text">🎂 生日快乐 🎂</div>
+  <div class="birthday-sub">愿你每一天都开心 💕</div>
+</div>
+
 <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+
+<audio id="bgMusic" preload="auto" loop>
+  <source src="music/brithday.mp3" type="audio/mpeg">
+</audio>
 
 <script>
 (function() {
@@ -264,12 +356,25 @@
   const girlImages = ['figure/girl1.jpg', 'figure/girl2.jpg', 'figure/girl3.jpg'];
   const catImages  = ['figure/cat1.jpg', 'figure/cat2.jpg', 'figure/cat3.jpg'];
 
+  // 随机失败文案
+  const failMessages = [
+    '验证失败，请重试',
+    '回答错误，再想想？',
+    '选错了哦，重新选吧',
+    '哎呀，差一点就对了',
+    '不太对，再试一次吧',
+    '这道题有点难对吧～',
+    '你确定吗？再看看',
+    '系统检测到异常，请重试'
+  ];
+
   const grid = document.getElementById('grid');
   const toast = document.getElementById('toast');
   const loadingBar = document.getElementById('loadingBar');
-  const roundInfo = document.getElementById('roundInfo');
   const overlay = document.getElementById('overlay');
   const canvas = document.getElementById('confettiCanvas');
+  const bgMusic = document.getElementById('bgMusic');
+  const birthdayPage = document.getElementById('birthdayPage');
 
   let round = 0;
   const maxRounds = 3;
@@ -289,6 +394,13 @@
     return shuffle([...girlImages, ...catImages]);
   }
 
+  // 更新进度点
+  function updateDots() {
+    for (var i = 0; i < maxRounds; i++) {
+      document.getElementById('dot' + i).className = 'dot' + (i < round ? ' done' : '');
+    }
+  }
+
   // 渲染宫格
   function renderGrid() {
     const images = getImages();
@@ -303,7 +415,6 @@
       });
       grid.appendChild(item);
     });
-    roundInfo.textContent = '';
   }
 
   // 显示 toast
@@ -335,6 +446,7 @@
     }
 
     round++;
+    updateDots();
 
     if (round >= maxRounds) {
       // 最后一轮 → 彩蛋
@@ -344,11 +456,11 @@
       return;
     }
 
-    // 随机选择"验证失败"还是静默换组
-    const failChance = Math.random();
-    if (failChance < 0.5) {
-      showToast('验证失败，请重试', 1200);
-      setTimeout(function() { renderGrid(); }, 800);
+    // 随机选择失败提示或静默换组
+    if (Math.random() < 0.6) {
+      var msg = failMessages[Math.floor(Math.random() * failMessages.length)];
+      showToast(msg, 1400);
+      setTimeout(function() { renderGrid(); }, 1000);
     } else {
       fakeLoading(function() { renderGrid(); });
     }
@@ -365,9 +477,18 @@
     setTimeout(function() { renderGrid(); }, 800);
   });
 
+  // 点"好叭"跳转生日页
+  document.getElementById('btnSurpriseClose').addEventListener('click', function() {
+    overlay.classList.remove('show');
+    birthdayPage.classList.add('show');
+    launchConfetti();
+  });
+
   // 彩蛋
   function showSurprise() {
     overlay.classList.add('show');
+    // 播放背景音乐
+    bgMusic.play().catch(function() {});
     launchConfetti();
   }
 
@@ -415,6 +536,7 @@
 
   // 初始化
   renderGrid();
+  updateDots();
 })();
 </script>
 </body>
