@@ -481,14 +481,13 @@
   document.getElementById('btnSurpriseClose').addEventListener('click', function() {
     overlay.classList.remove('show');
     birthdayPage.classList.add('show');
+    bgMusic.play().catch(function() {});
     launchConfetti();
   });
 
   // 彩蛋
   function showSurprise() {
     overlay.classList.add('show');
-    // 播放背景音乐
-    bgMusic.play().catch(function() {});
     launchConfetti();
   }
 
