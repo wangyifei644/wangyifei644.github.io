@@ -284,14 +284,9 @@
     return a;
   }
 
-  // 生成当轮图片（6 张，girl 和 cat 混合）
+  // 生成当轮图片（6 张，girl 和 cat 混合打乱）
   function getImages() {
-    // 每次随机取 2-4 张 girl，剩下用 cat 补
-    const girlCount = 2 + Math.floor(Math.random() * 2); // 2 or 3
-    const catCount = 6 - girlCount;
-    const girls = shuffle(girlImages).slice(0, girlCount);
-    const cats  = shuffle(catImages).slice(0, catCount);
-    return shuffle([...girls, ...cats]);
+    return shuffle([...girlImages, ...catImages]);
   }
 
   // 渲染宫格
