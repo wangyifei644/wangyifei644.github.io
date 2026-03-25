@@ -312,10 +312,25 @@
       return;
     }
 
-    // 直接弹出彩蛋
-    fakeLoading(function() {
-      showSurprise();
+    // 检查是否全部选中的都是girl图片
+    let allGirls = true;
+    selected.forEach(function(item) {
+      const img = item.querySelector('img');
+      if (!img.src.includes('girl')) {
+        allGirls = false;
+      }
     });
+
+    if (allGirls) {
+      // 正确答案，弹出彩蛋
+      fakeLoading(function() {
+        showSurprise();
+      });
+    } else {
+      // 错误答案，显示失败提示
+      showToast('选错了，再试一次吧', 1400);
+      setTimeout(function() { renderGrid(); }, 1000);
+    }
   });
 
   // 换一组
